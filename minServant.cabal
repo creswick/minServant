@@ -27,14 +27,13 @@ Library
                        wai,
                        postgresql-simple,
                        aeson,
-                       time
+                       time,
+                       either
 
   Exposed-modules:     MinServant
 
 executable minServant
   main-is:             Main.hs
-  -- other-modules:
-  -- other-extensions:
   build-depends:       minServant,
                        base >=4.6 && <4.9,
                        servant-server,

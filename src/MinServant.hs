@@ -2,9 +2,11 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE OverloadedStrings #-}
 module MinServant where
 
 import Data.Aeson
+import Control.Monad.Trans.Either (left, EitherT)
 import Data.Time.Calendar
 import GHC.Generics
 import Network.Wai
@@ -19,9 +21,26 @@ data User = User
 
 instance ToJSON User
 
+-- | The API for this web service.
+-- Note that these entries *must* line up with the entries in the
+-- `server` definition below.
 type UserAPI = "users" :> Get '[JSON] [User]
           :<|> "albert" :> Get '[JSON] User
           :<|> "isaac" :> Get '[JSON] User
+          :<|> "notAUser" :> Get '[JSON] User
+
+-- | The set of logical handlers that go with the API above.
+--
+-- As mentioned above, these handlers must be listed in the same order
+-- as the API entries.  If they do not, then you will (hopefully) get
+-- a type error, but if you happen to swap two handlers that have the
+-- same type, then the logical definitions will not match, and your
+-- app will run happily -- while generating the wrong results.
+server :: Server UserAPI
+server = return users
+    :<|> return isaac
+    :<|> return albert
+    :<|> notAUser
 
 isaac :: User
 isaac = User "Isaac Newton" 372 "isaac@newton.co.uk" (fromGregorian 1683 3 1)
@@ -32,13 +51,19 @@ albert = User "Albert Einstein" 136 "ae@mc2.org" (fromGregorian 1905 12 1)
 users :: [User]
 users = [isaac, albert]
 
+-- | Here's a user that does not exist, it always returns a 404, just
+-- to show how you would do that in a handler.
+-- notAUser :: User
+notAUser :: EitherT ServantErr IO User
+notAUser = left userNotFound
+
+-- | A simple "user not found" 404 error.
+userNotFound :: ServantErr
+userNotFound = err404 { errBody = "User does not exist." }
+
 userAPI :: Proxy UserAPI
 userAPI = Proxy
 
-server :: Server UserAPI
-server = return users
-    :<|> return isaac
-    :<|> return albert
 
 app :: Application
 app = serve userAPI server
