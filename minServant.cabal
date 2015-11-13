@@ -28,9 +28,13 @@ Library
                        postgresql-simple,
                        aeson,
                        time,
-                       either
+                       either,
+                       bytestring,
+                       transformers
 
   Exposed-modules:     MinServant
+                       Db
+                       Types
 
 executable minServant
   main-is:             Main.hs
