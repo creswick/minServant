@@ -24,10 +24,13 @@ Library
   ghc-options:         -Wall -fno-warn-unused-do-bind
   build-depends:       base >=4.6 && <4.9,
                        servant-server,
+                       servant-docs,
                        wai,
                        postgresql-simple,
                        aeson,
                        time,
+                       text,
+                       http-types,
                        either,
                        bytestring,
                        transformers

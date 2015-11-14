@@ -9,6 +9,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Either (left, EitherT)
 import Network.Wai
 import Servant
+import Network.HTTP.Types
 
 import Types
 import Db
@@ -21,11 +22,17 @@ import API
 -- a type error, but if you happen to swap two handlers that have the
 -- same type, then the logical definitions will not match, and your
 -- app will run happily -- while generating the wrong results.
-server :: Server UserAPI
-server = users
+userServer :: Server UserAPI
+userServer = users
     :<|> getUser
     :<|> return albert
     :<|> return isaac
+
+docsServer _ respond =
+  respond $ responseLBS ok200 [("Content-Type", "text/plain")] docsBS
+
+server :: Server FullAPI
+server = userServer :<|> docsServer
 
 isaac :: User
 isaac = User 1 "Isaac Newton" 372 "isaac@newton.co.uk" "1683-3-1" -- (fromGregorian 1683 3 1)
@@ -47,8 +54,6 @@ getUser theId = do
 userNotFound :: ServantErr
 userNotFound = err404 { errBody = "User does not exist." }
 
-userAPI :: Proxy UserAPI
-userAPI = Proxy
 
 app :: Application
-app = serve userAPI server
+app = serve fullAPI server
