@@ -33,6 +33,7 @@ Library
                        transformers
 
   Exposed-modules:     MinServant
+                       API
                        Db
                        Types
 
