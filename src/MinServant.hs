@@ -28,18 +28,6 @@ userServer = users
     :<|> return albert
     :<|> return isaac
 
-docsServer _ respond =
-  respond $ responseLBS ok200 [("Content-Type", "text/plain")] docsBS
-
-server :: Server FullAPI
-server = userServer :<|> docsServer
-
-isaac :: User
-isaac = User 1 "Isaac Newton" 372 "isaac@newton.co.uk" "1683-3-1" -- (fromGregorian 1683 3 1)
-
-albert :: User
-albert = User 2 "Albert Einstein" 136 "ae@mc2.org" "1905-12-1" -- (fromGregorian 1905 12 1)
-
 users :: EitherT ServantErr IO [User]
 users = liftIO loadUsers
 
@@ -54,6 +42,12 @@ getUser theId = do
 userNotFound :: ServantErr
 userNotFound = err404 { errBody = "User does not exist." }
 
+
+docsServer _ respond =
+  respond $ responseLBS ok200 [("Content-Type", "text/plain")] docsBS
+
+server :: Server FullAPI
+server = userServer :<|> docsServer
 
 app :: Application
 app = serve fullAPI server

@@ -10,7 +10,6 @@ import Data.Text.Lazy.Encoding (encodeUtf8)
 import Servant
 import Servant.Docs
 
-
 import Types
 
 -- | The API for this web service.
@@ -29,12 +28,19 @@ instance ToCapture (Capture "userId" Int) where
     DocCapture "userId"                             -- name
                "(integer) ID of the requested user" -- description
 
+-- | Sample user.
+isaac :: User
+isaac = User 1 "Isaac Newton" 372 "isaac@newton.co.uk" "1683-3-1" -- (fromGregorian 1683 3 1)
+
+-- | Another sample user.
+albert :: User
+albert = User 2 "Albert Einstein" 136 "ae@mc2.org" "1905-12-1" -- (fromGregorian 1905 12 1)
+
 instance ToSample User User where
-  toSample _ = Just (User 1 "Isaac Newton" 372 "isaac@newton.co.uk" "1683-3-1")
+  toSample _ = Just isaac
 
 instance ToSample [User] [User] where
-  toSample _ = Just [ User 1 "Isaac Newton" 372 "isaac@newton.co.uk" "1683-3-1"
-                    , User 2 "Albert Einstein" 136 "ae@mc2.org" "1905-12-1" ]
+  toSample _ = Just [ isaac, albert ]
 
 docsBS :: ByteString
 docsBS = encodeUtf8
