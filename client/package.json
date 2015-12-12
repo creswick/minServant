@@ -1,0 +1,28 @@
+{
+  "name": "minServant",
+  "version": "1.0.0",
+  "description": "Minimal end-to-end web app example using Servant.",
+  "main": "src/index.js",
+  "author": { "name" : "Rogan Creswick",
+              "email" : "creswick@gmail.com"
+            },
+  "homepage": "https://github.com/creswick/minServant",
+  "bugs" : { "url" : "https://github.com/creswick/minServant/issues",
+             "email" : "creswick@gmail.com"
+           },
+  "license" : "BSD-3-Clause",
+  "scripts": {
+    "build": "npm run clean && webpack --progress && cp index.html ../static/",
+    "clean": "rm -rf ../static/*"
+  },
+  "dependencies": {
+    "react": ">=0.14",
+    "react-dom": "*",
+    "react-router": ">=1.0"
+  },
+  "devDependencies": {
+    "webpack": "1.12.0",
+    "jsx-loader": "*",
+    "file-loader": "*"
+  }
+}
