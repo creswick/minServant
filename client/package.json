@@ -18,7 +18,9 @@
   "dependencies": {
     "react": ">=0.14",
     "react-dom": "*",
-    "react-router": ">=1.0"
+    "react-router": ">=1.0",
+    "jquery": "*"
+    
   },
   "devDependencies": {
     "webpack": "1.12.0",

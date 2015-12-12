@@ -30,14 +30,3 @@ loadUser theId = X.bracket (connect connInfo) PG.close $ \conn -> do
   case us of
     [] -> return $ Left "user not found"
     (u:_) -> return $ Right u
-
-
-
-
--- getEdges :: ByteString -> IO [(Int, Int, Int, Int)]
--- getEdges kitname = X.bracket (connect details) PG.close $ \conn -> do
---   PG.query conn [sql| SELECT edges.id, edges.kitid, edges.sourceid, edges.destid
---                       FROM edges, appkits
---                       WHERE appkits.id = edges.kitid
---                       AND appkits.name = ?
---                     |] (PG.Only kitname)

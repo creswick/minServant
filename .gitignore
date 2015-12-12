@@ -1,5 +1,7 @@
 dist
 cabal-dev
+static
+npm-debug.log
 *.o
 *.hi
 *.chi

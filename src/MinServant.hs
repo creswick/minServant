@@ -46,8 +46,10 @@ userNotFound = err404 { errBody = "User does not exist." }
 docsServer _ respond =
   respond $ responseLBS ok200 [("Content-Type", "text/plain")] docsBS
 
+staticServer = serveDirectory "static"
+
 server :: Server FullAPI
-server = userServer :<|> docsServer
+server = userServer :<|> staticServer :<|> docsServer
 
 app :: Application
 app = serve fullAPI server

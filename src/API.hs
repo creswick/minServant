@@ -50,7 +50,12 @@ docsBS = encodeUtf8
 
   where intro = DocIntro "Welcome" ["This is our super webservice's API.", "Enjoy!"]
 
-type FullAPI = UserAPI :<|> Raw
+type StaticAPI = "static" :> Raw
+
+staticAPI :: Proxy StaticAPI
+staticAPI = Proxy
+
+type FullAPI = UserAPI :<|> StaticAPI :<|> Raw
 
 fullAPI :: Proxy FullAPI
 fullAPI = Proxy
