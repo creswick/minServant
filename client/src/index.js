@@ -1,6 +1,6 @@
 'use strict'
 
-const $ = require(jquery);
+const $ = require('jquery');
 const React = require('react');
 const { render } = require('react-dom');
 // First we import some components...
