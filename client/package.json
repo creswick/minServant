@@ -19,8 +19,8 @@
     "react": ">=0.14",
     "react-dom": "*",
     "react-router": ">=1.0",
-    "jquery": "*"
-    
+    "jquery": "*",
+    "marked": "*"
   },
   "devDependencies": {
     "webpack": "1.12.0",
