@@ -39,6 +39,7 @@ Library
                        API
                        Db
                        Types
+                       Errors
 
 executable minServant
   main-is:             Main.hs

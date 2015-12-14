@@ -5,21 +5,26 @@
 {-# LANGUAGE OverloadedStrings #-}
 module MinServant where
 
-import Data.Text (Text)
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Trans.Either (left, EitherT)
+import qualified Control.Exception as X
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
+import           Data.Text.Lazy (pack)
+import           Data.Text.Lazy.Encoding (encodeUtf8)
+import           Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy.Char8 as LC8
-import Data.Time.Calendar (fromGregorian)
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Either (left, EitherT)
-import qualified Control.Exception as X
-import Network.Wai
-import Servant
-import Network.HTTP.Types
+import           Data.Time.Calendar (fromGregorian)
+import           Network.HTTP.Types
+import           Network.Wai
+import           Servant
+import           Servant.Docs
 
-import Types
-import Db
-import API
+import           API
+import           Db
+import           Errors
+import           Types
 
 -- | The set of logical handlers that go with the API.
 --
@@ -29,11 +34,11 @@ import API
 -- same type, then the logical definitions will not match, and your
 -- app will run happily -- while generating the wrong results.
 userServer :: Server UserAPI
-userServer = users
-    :<|> getUser
-    :<|> return albert
-    :<|> return isaac
+userServer = users :<|> getUser
 
+-- | The users endpoint loads the full list of users from a database,
+-- which has to happen in IO, so the return type needs to incorporate
+-- error conditions.
 users :: EitherT ServantErr IO [User]
 users = liftIO loadUsers
 
@@ -44,12 +49,13 @@ getUser theId = do
     Left  _err -> left userNotFound
     Right user -> return user
 
--- | A simple "user not found" 404 error.
-userNotFound :: ServantErr
-userNotFound = err404 { errBody = "User does not exist." }
+docsBS :: ByteString
+docsBS = encodeUtf8
+       . pack
+       . markdown
+       $ docsWithIntros [intro] userAPI
 
-fileNotFound :: FilePath -> ServantErr
-fileNotFound filepath = err404 { errBody = LC8.pack ("File not found: " ++ filepath) }
+  where intro = DocIntro "Welcome" ["This is our super webservice's API.", "Enjoy!"]
 
 docsServer _ respond =
   respond $ responseLBS ok200 [("Content-Type", "text/plain")] docsBS

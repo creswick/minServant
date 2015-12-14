@@ -4,9 +4,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 module API where
 
-import Data.ByteString.Lazy (ByteString)
-import Data.Text.Lazy (pack)
-import Data.Text.Lazy.Encoding (encodeUtf8)
 import Servant
 import Servant.Docs
 
@@ -17,8 +14,6 @@ import Types
 -- `server` definition.
 type UserAPI = "users" :> Get '[JSON] [User]
           :<|> "users" :> Capture "userId" Int :> Get '[JSON] User
-          :<|> "albert" :> Get '[JSON] User
-          :<|> "isaac" :> Get '[JSON] User
 
 userAPI :: Proxy UserAPI
 userAPI = Proxy
@@ -28,7 +23,7 @@ instance ToCapture (Capture "userId" Int) where
     DocCapture "userId"                             -- name
                "(integer) ID of the requested user" -- description
 
--- | Sample user.
+-- | Sample user for documentation
 isaac :: User
 isaac = User 1 "Isaac Newton" 372 "isaac@newton.co.uk" "1683-3-1" -- (fromGregorian 1683 3 1)
 
@@ -42,26 +37,23 @@ instance ToSample User User where
 instance ToSample [User] [User] where
   toSample _ = Just [ isaac, albert ]
 
-docsBS :: ByteString
-docsBS = encodeUtf8
-       . pack
-       . markdown
-       $ docsWithIntros [intro] userAPI
-
-  where intro = DocIntro "Welcome" ["This is our super webservice's API.", "Enjoy!"]
-
+-- | API for the documentation end point, which returns results as markdown:
 type DocsAPI = "docs" :> Raw
 
 docsAPI :: Proxy DocsAPI
 docsAPI = Proxy
 
-type StaticAPI = "static" :> Raw
-            :<|> Raw
+-- | API for static file hosting, either in the static sub directory,
+-- or as root (for index.html)
+type StaticAPI = "static" :> Raw -- Static file handler.
+            :<|> Raw -- Handler for requests to the root url ("/")
 
 staticAPI :: Proxy StaticAPI
 staticAPI = Proxy
 
-type FullAPI = UserAPI :<|> DocsAPI :<|> StaticAPI 
+
+-- | The unified API for the whole web service:
+type FullAPI = UserAPI :<|> DocsAPI :<|> StaticAPI
 
 fullAPI :: Proxy FullAPI
 fullAPI = Proxy
