@@ -2,7 +2,7 @@
 
 const $ = require('jquery');
 const React = require('react');
-const User = require('./User.js');
+const User = require('./User.jsx');
 
 const UserList = React.createClass({
   getInitialState: function() {

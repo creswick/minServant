@@ -1,13 +1,17 @@
 'use strict'
 
 const $ = require('jquery');
+
+// bootstrap does not export anything:
+require("bootstrap-webpack");
+
 const React = require('react');
 const { render } = require('react-dom');
 const { Router, Route, Link } = require('react-router');
 
-const App = require('./components/App.js');
-const UserList = require('./components/UserList.js');
-const Docs = require('./components/Docs.js');
+const App = require('./components/App.jsx');
+const UserList = require('./components/UserList.jsx');
+const Docs = require('./components/Docs.jsx');
 
 render((
   <Router>

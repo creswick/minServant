@@ -26,6 +26,7 @@ Library
                        servant-server,
                        servant-docs,
                        wai,
+                       hssqlppp,
                        postgresql-simple,
                        aeson,
                        time,

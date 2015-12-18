@@ -10,6 +10,9 @@
   "bugs" : { "url" : "https://github.com/creswick/minServant/issues",
              "email" : "creswick@gmail.com"
            },
+  "repository" : { "type" : "git",
+                   "url" : "https://github.com/creswick/minServant.git"
+                 },
   "license" : "BSD-3-Clause",
   "scripts": {
     "build": "npm run clean && webpack --progress && cp index.html ../static/",
@@ -20,11 +23,13 @@
     "react-dom": "*",
     "react-router": ">=1.0",
     "jquery": "*",
-    "marked": "*"
+    "marked": "*",
+    "bootstrap": "*"
   },
   "devDependencies": {
     "webpack": "1.12.0",
     "jsx-loader": "*",
-    "file-loader": "*"
+    "file-loader": "*",
+    "bootstrap-webpack": "*"
   }
 }
