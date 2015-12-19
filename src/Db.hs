@@ -45,11 +45,11 @@ loadUsers = do
     Right users -> return users
 
 loadUser :: Int -> IO (Either String User)
-loadUser theId = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
-  us <- PG.query conn [$sql| SELECT *
-                           FROM users
-                           WHERE user_id=?
-                          |] (PG.Only theId)
+loadUser the_id = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
+  us <- query conn [$sqlStmt| SELECT *
+                                FROM users
+                               WHERE user_id=$(the_id);
+                   |]
   case us of
     [] -> return $ Left "user not found"
     (u:_) -> return $ Right u
