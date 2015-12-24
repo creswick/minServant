@@ -5,9 +5,11 @@ module Db where
 
 import qualified Data.ByteString as BS
 import           Data.String (fromString)
+import qualified Data.Text.Lazy as TL
 import qualified Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.SqlQQ ( sql )
-import           Database.HsSqlPpp.Ast
+-- import           Database.HsSqlPpp.Ast
+import           Database.HsSqlPpp.Syntax
 import           Database.HsSqlPpp.Quote
 import           Database.HsSqlPpp.Annotation
 import           Database.HsSqlPpp.Pretty
@@ -27,7 +29,7 @@ import           Types
 --     typename = "text"
 
 query :: (PG.FromRow r) => PG.Connection -> Statement -> IO (Either X.SomeException [r])
-query conn stmt = X.try (PG.query_ conn $ fromString $ printStatements [stmt])
+query conn stmt = X.try (PG.query_ conn $ fromString $ TL.unpack $ prettyStatements defaultPrettyFlags [stmt])
 
 connInfo :: PG.ConnectInfo
 connInfo = PG.defaultConnectInfo
@@ -45,11 +47,14 @@ loadUsers = do
     Right users -> return users
 
 loadUser :: Int -> IO (Either String User)
-loadUser the_id = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
-  us <- query conn [$sqlStmt| SELECT *
+loadUser the_id' = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
+  let the_id = NumberLit emptyAnnotation $ show the_id'
+  eUs <- query conn [$sqlStmt| SELECT *
                                 FROM users
-                               WHERE user_id=$(the_id);
+                               WHERE user_id=1; -- $(the_id);
                    |]
-  case us of
-    [] -> return $ Left "user not found"
-    (u:_) -> return $ Right u
+  case eUs of
+    Left err -> return $ Left (show err)
+    Right [] -> return $ Left "user not found"
+    Right (u:_) -> return $ Right u
+
