@@ -15,7 +15,7 @@
                  },
   "license" : "BSD-3-Clause",
   "scripts": {
-    "build": "npm run clean && webpack --progress && cp index.html ../static/",
+    "build": "npm run clean && webpack --progress && cp index.html jquery.min.js ../static/",
     "clean": "rm -rf ../static/*"
   },
   "dependencies": {
@@ -24,7 +24,8 @@
     "react-router": ">=1.0",
     "jquery": "*",
     "marked": "*",
-    "bootstrap": "*"
+    "bootstrap": "*",
+    "d3": "*"
   },
   "devDependencies": {
     "webpack": "1.12.0",
