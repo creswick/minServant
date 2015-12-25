@@ -25,14 +25,13 @@ const UserList = React.createClass({
 
   render: function() {
     var userNodes = this.state.data.map(function(user) {
+      /* Set a key here to help react differentiate between
+         different user entries.  This also gets rid of the "Each
+         child in an array or iterator should have a unique "key"
+         prop." warning.
+         See: https://fb.me/react-warning-keys for more details.
+       */
       return (
-          {/* Set a key here to help react differentiate between
-              different user entries.  This also gets rid of the "Each
-              child in an array or iterator should have a unique "key"
-              prop." warning.
-
-              See: https://fb.me/react-warning-keys for more details.
-          */}
           <User key={user.user_id} user={user} />
       );
     });

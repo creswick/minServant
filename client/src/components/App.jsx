@@ -8,13 +8,14 @@ const App = React.createClass({
   render: function() {
     return (
       <div>
-        <h1>App</h1>
-        <ul>
-          <li><Link to="/users">Users</Link></li>
-          <li><Link to="/docs">API Docs</Link></li>
-        </ul>
+          <h1>App</h1>
+          <ul>
+              <li><Link to="/users">Users</Link></li>
+              <li><Link to="/usergraph">User Graph</Link></li>
+              <li><Link to="/docs">API Docs</Link></li>
+          </ul>
 
-        {this.props.children}
+          {this.props.children}
       </div>
     )}
 });

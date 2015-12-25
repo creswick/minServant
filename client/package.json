@@ -21,6 +21,7 @@
   "dependencies": {
     "react": ">=0.14",
     "react-dom": "*",
+    "react-faux-dom": "^1.0.0",
     "react-router": ">=1.0",
     "jquery": "*",
     "marked": "*",
