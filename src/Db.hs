@@ -51,7 +51,7 @@ loadUser the_id' = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
   let the_id = NumberLit emptyAnnotation $ show the_id'
   eUs <- query conn [$sqlStmt| SELECT *
                                 FROM users
-                               WHERE user_id=1; -- $(the_id);
+                               WHERE $e(the_id);
                    |]
   case eUs of
     Left err -> return $ Left (show err)
