@@ -20,4 +20,4 @@ render((
       <Route path="docs" component={Docs} />
     </Route>
   </Router>
-), document.body);
+), document.getElementById('content'));
