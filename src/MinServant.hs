@@ -45,8 +45,6 @@ users = liftIO loadUsers
 
 getUser :: Int -> EitherT ServantErr IO User
 getUser theId = do
-  liftIO $ putStrLn ("Javascript: "++generateJS adduserJS)
-
   res <- liftIO $ loadUser theId
   case res of
     Left  _err -> left userNotFound
@@ -58,12 +56,6 @@ newUser newUser = do
   case res of
     Left _err -> left serverError
     Right  _  -> users
-
-usersJS :<|> userJS :<|> adduserJS = jquery userAPI
-
-writeJS :: FilePath -> [AjaxReq] -> IO ()
-writeJS fp functions = writeFile fp $
-  concatMap generateJS functions
 
 docsBS :: ByteString
 docsBS = encodeUtf8

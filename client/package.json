@@ -16,7 +16,7 @@
   "license" : "BSD-3-Clause",
   "scripts": {
     "build": "npm run clean && webpack --progress && cp index.html jquery.min.js ../static/",
-    "clean": "rm -rf ../static/*"
+    "clean": "rm -rf ../static/* && rm -rf generated"
   },
   "dependencies": {
     "react": ">=0.14",

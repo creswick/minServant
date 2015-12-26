@@ -4,19 +4,7 @@ const $ = require('jquery');
 const React = require('react');
 const User = require('./User.jsx');
 const AddUserForm = require('./AddUserForm.jsx');
-
-// TODO move to a generated Server module.
-function postadduser(body, onSuccess, onError)
-{
-  $.ajax(
-    { url: '/adduser'
-    , success: onSuccess
-    , data: JSON.stringify(body)
-    , contentType: 'application/json'
-    , error: onError
-    , type: 'POST'
-    });
-}
+const server = require('../generated/server.js');
 
 const UserList = React.createClass({
   propTypes: {
@@ -67,7 +55,7 @@ const UserList = React.createClass({
     console.log("newuser: "+JSON.stringify(newUser));
 
     // POST to the server:
-    postadduser(newUser,
+    server.postadduser(newUser,
                 function(data) {
                   this.setState({data: data});
                 }.bind(this),
