@@ -19,14 +19,11 @@ const UserGraph = React.createClass({
   propTypes: {
     width: React.PropTypes.number,
     height: React.PropTypes.number,
-    url: React.PropTypes.string
+    url: React.PropTypes.string,
+    pollInterval: React.PropTypes.number
   },
 
-  getInitialState: function() {
-    return {data: []};
-  },
-
-  componentDidMount: function() {
+  loadUsersFromServer: function() {
     $.ajax({
       url: this.props.url,
       dataType: 'json',
@@ -38,6 +35,22 @@ const UserGraph = React.createClass({
         console.error(this.props.url, status, err.toString());
       }.bind(this)
     });
+  },
+
+  getInitialState: function() {
+    return { data: []
+           , pollTimer: null };
+  },
+
+  componentDidMount: function() {
+    this.loadUsersFromServer();
+    const pollTimer = setInterval(this.loadUsersFromServer, this.props.pollInterval);
+
+    this.setState({pollTimer: pollTimer});
+  },
+
+  componentWillUnmount: function () {
+    clearInterval(this.state.pollTimer);
   },
 
   render: function () {

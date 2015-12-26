@@ -17,6 +17,7 @@ data User = User
   } deriving (Eq, Show, Generic)
 
 instance ToJSON User
+instance FromJSON User
 
 instance D.FromRow User where
   fromRow = do

@@ -20,6 +20,7 @@ import           Network.HTTP.Types
 import           Network.Wai
 import           Servant
 import           Servant.Docs
+import           Servant.JQuery
 
 import           API
 import           Db
@@ -34,7 +35,7 @@ import           Types
 -- same type, then the logical definitions will not match, and your
 -- app will run happily -- while generating the wrong results.
 userServer :: Server UserAPI
-userServer = users :<|> getUser
+userServer = users :<|> getUser :<|> newUser
 
 -- | The users endpoint loads the full list of users from a database,
 -- which has to happen in IO, so the return type needs to incorporate
@@ -44,10 +45,25 @@ users = liftIO loadUsers
 
 getUser :: Int -> EitherT ServantErr IO User
 getUser theId = do
+  liftIO $ putStrLn ("Javascript: "++generateJS adduserJS)
+
   res <- liftIO $ loadUser theId
   case res of
     Left  _err -> left userNotFound
     Right user -> return user
+
+newUser :: User -> EitherT ServantErr IO [User]
+newUser newUser = do
+  res <- liftIO $ saveUser newUser
+  case res of
+    Left _err -> left serverError
+    Right  _  -> users
+
+usersJS :<|> userJS :<|> adduserJS = jquery userAPI
+
+writeJS :: FilePath -> [AjaxReq] -> IO ()
+writeJS fp functions = writeFile fp $
+  concatMap generateJS functions
 
 docsBS :: ByteString
 docsBS = encodeUtf8

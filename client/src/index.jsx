@@ -26,12 +26,16 @@ const wrapComponent = function(Component, props) {
 render((
   <Router>
     <Route path="/" component={App}>
-      <Route path="users" component={UserList} />
+        <Route path="users"
+               component={wrapComponent(UserList,
+                                        { url: '/users'
+                                        , pollInterval: 2000 })} />
       <Route path="usergraph"
              component={wrapComponent(UserGraph,
                                       { url: '/users'
                                       , width: 400
                                       , height: 400
+                                      , pollInterval: 2000
                                       })} />
       <Route path="docs" component={Docs} />
     </Route>

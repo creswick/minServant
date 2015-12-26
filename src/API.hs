@@ -14,6 +14,7 @@ import Types
 -- `server` definition.
 type UserAPI = "users" :> Get '[JSON] [User]
           :<|> "users" :> Capture "userId" Int :> Get '[JSON] User
+          :<|> "adduser" :> ReqBody '[JSON] User :> Post '[JSON] [User]
 
 userAPI :: Proxy UserAPI
 userAPI = Proxy

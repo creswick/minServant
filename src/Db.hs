@@ -8,28 +8,20 @@ import           Data.String (fromString)
 import qualified Data.Text.Lazy as TL
 import qualified Database.PostgreSQL.Simple as PG
 import           Database.PostgreSQL.Simple.SqlQQ ( sql )
--- import           Database.HsSqlPpp.Ast
 import           Database.HsSqlPpp.Syntax
 import           Database.HsSqlPpp.Quote
 import           Database.HsSqlPpp.Annotation
 import           Database.HsSqlPpp.Pretty
 import qualified Control.Exception as X
+import           Control.Monad (void)
 
 import           Types
 
--- test :: Statement
--- test = [$sqlStmt|
---   create table $(tablename) (
---    $(varname) $(typename)
---   );
---         |]
---   where
---     tablename = "my_table"
---     varname = "my_field"
---     typename = "text"
-
 query :: (PG.FromRow r) => PG.Connection -> Statement -> IO (Either X.SomeException [r])
 query conn stmt = X.try (PG.query_ conn $ fromString $ TL.unpack $ prettyStatements defaultPrettyFlags [stmt])
+
+exec :: PG.Connection -> Statement -> IO (Either X.SomeException ())
+exec conn stmt = X.try (void $ PG.execute_ conn $ fromString $ TL.unpack $ prettyStatements defaultPrettyFlags [stmt])
 
 connInfo :: PG.ConnectInfo
 connInfo = PG.defaultConnectInfo
@@ -58,3 +50,20 @@ loadUser the_id' = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
     Right [] -> return $ Left "user not found"
     Right (u:_) -> return $ Right u
 
+saveUser :: User -> IO (Either String [()])
+saveUser user = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
+  res <- exec conn [$sqlStmt| INSERT INTO users
+                                      (name, age, email, registration_date)
+                               VALUES ($e(newname), $e(newage), $e(newemail), $e(registrationdate));
+                             |]
+  case res of
+    Left err -> return (Left $ show err)
+    Right  v -> return $ Right [()]
+
+  where
+    newname = StringLit emptyAnnotation (name user)
+    newage = NumberLit emptyAnnotation (show $ age user)
+    newemail = StringLit emptyAnnotation (email user)
+    registrationdate = StringLit emptyAnnotation (registration_date user)
+
+-- insert into users (name, age, email, registration_date) values ('A. E.', 136, 'ae@mc2.org', '1905-12-1');
