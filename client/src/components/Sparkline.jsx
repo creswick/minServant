@@ -24,8 +24,6 @@ const Sparkline = React.createClass({
   render: function () {
     const {width, height, data, interpolation} = this.props;
 
-    console.log("Sparkline data");
-    console.log(data);
     const el = d3.select(ReactFauxDOM.createElement('svg'))
                  .attr(this.props)
                  .attr('data', null);

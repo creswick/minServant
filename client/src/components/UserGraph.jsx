@@ -7,13 +7,11 @@ const Sparkline = require('./Sparkline.jsx');
 
 require('./UserGraph.css');
 
-
 const extractAge = function(data) {
   return data.map(function(user) {
     return user.age;
   });
 };
-// const sampledata = [85, 66, 71, 10, 5, 16, 71, 1, 16, 24, 54, 85, 37, 36, 43, 67, 63, 23, 96, 53, 25]
 
 const UserGraph = React.createClass({
   propTypes: {
@@ -54,8 +52,6 @@ const UserGraph = React.createClass({
   },
 
   render: function () {
-    console.log("UserGraph data:");
-    console.log(this.state.data);
     return (
       <Sparkline className='usergraph'
                  width={this.props.width}
