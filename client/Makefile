@@ -12,7 +12,7 @@ client: index.html jquery.min.js ../static/build.js
 	cp index.html jquery.min.js ../static
 
 $(GENERATED_DIR)/server.js: ${GENJS}
-	mkdir $(GENERATED_DIR)
+	mkdir -p $(GENERATED_DIR)
 	${GENJS} $@
 
 ../static/build.js: node_modules $(GENERATED_DIR)/server.js ${CLIENT_SRC_JS} ${CLIENT_SRC_CSS}

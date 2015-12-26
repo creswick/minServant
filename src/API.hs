@@ -13,7 +13,7 @@ import Types
 -- Note that these entries *must* line up with the entries in the
 -- `server` definition.
 type UserAPI = "users" :> Get '[JSON] [User]
-          :<|> "users" :> Capture "userId" Int :> Get '[JSON] User
+          :<|> "user" :> Capture "userId" Int :> Get '[JSON] User
           :<|> "adduser" :> ReqBody '[JSON] User :> Post '[JSON] [User]
 
 userAPI :: Proxy UserAPI
