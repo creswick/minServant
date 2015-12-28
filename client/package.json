@@ -3,30 +3,34 @@
   "version": "1.0.0",
   "description": "Minimal end-to-end web app example using Servant.",
   "main": "src/index.js",
-  "author": { "name" : "Rogan Creswick",
-              "email" : "creswick@gmail.com"
-            },
+  "author": {
+    "name": "Rogan Creswick",
+    "email": "creswick@gmail.com"
+  },
   "homepage": "https://github.com/creswick/minServant",
-  "bugs" : { "url" : "https://github.com/creswick/minServant/issues",
-             "email" : "creswick@gmail.com"
-           },
-  "repository" : { "type" : "git",
-                   "url" : "https://github.com/creswick/minServant.git"
-                 },
-  "license" : "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/creswick/minServant/issues",
+    "email": "creswick@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/creswick/minServant.git"
+  },
+  "license": "BSD-3-Clause",
   "scripts": {
     "build": "npm run clean && webpack --progress && cp index.html jquery.min.js ../static/",
     "clean": "rm -rf ../static/* && rm -rf generated"
   },
   "dependencies": {
+    "bootstrap": "*",
+    "d3": "*",
+    "font-awesome": "^4.5.0",
+    "jquery": "*",
+    "marked": "*",
     "react": ">=0.14",
     "react-dom": "*",
     "react-faux-dom": "^1.0.0",
-    "react-router": ">=1.0",
-    "jquery": "*",
-    "marked": "*",
-    "bootstrap": "*",
-    "d3": "*"
+    "react-router": ">=1.0"
   },
   "devDependencies": {
     "webpack": "1.12.0",

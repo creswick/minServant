@@ -1,3 +1,13 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE sessions (
+  session_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id INTEGER NOT NULL,
+
+  -- Delete a session when / if the user is deleted:
+  FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 CREATE TABLE users (
   user_id SERIAL NOT NULL,
   name text NOT NULL,

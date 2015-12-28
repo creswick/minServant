@@ -17,6 +17,9 @@ import           Control.Monad (void)
 
 import           Types
 
+
+-- TODO: Look into this: http://www.parsonsmatt.org/2015/06/07/servant-persistent.html
+
 query :: (PG.FromRow r) => PG.Connection -> Statement -> IO (Either X.SomeException [r])
 query conn stmt = X.try (PG.query_ conn $ fromString $ TL.unpack $ prettyStatements defaultPrettyFlags [stmt])
 
@@ -67,3 +70,16 @@ saveUser user = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
     registrationdate = StringLit emptyAnnotation (registration_date user)
 
 -- insert into users (name, age, email, registration_date) values ('A. E.', 136, 'ae@mc2.org', '1905-12-1');
+newSession :: Int -> IO (Either String String)
+newSession userId = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
+  res <- query conn [$sqlStmt| INSERT INTO sessions (user_id)
+                               VALUES ($e(userid))
+                               RETURNING session_id;
+                             |]
+  case res of
+    Left    err -> return (Left $ show err)
+    Right    [] -> return $ Left "user not found"
+    Right (u:_) -> return $ Right u
+
+  where
+    userid = NumberLit emptyAnnotation (show userId)

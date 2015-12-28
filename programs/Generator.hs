@@ -1,8 +1,11 @@
 module Generator where
 
+import Control.Lens (view)
+import qualified Data.Text as T
 import Data.List
 import System.Environment
-import Servant.JQuery
+import Servant.JS
+import Servant.Foreign
 import Servant
 import API
 
@@ -10,18 +13,20 @@ import API
 main :: IO ()
 main = do
   (outFile:_) <- getArgs
-  writeJS outFile [usersJS, userJS, adduserJS]
+  writeJS outFile userAPI
 
-usersJS :<|> userJS :<|> adduserJS = jquery userAPI
+-- usersJS :<|> userJS :<|> adduserJS = jquery userAPI
 
-writeJS :: FilePath -> [AjaxReq] -> IO ()
-writeJS fp functions = writeFile fp $ unlines
+-- writeJS :: FilePath -> [AjaxReq] -> IO ()
+writeJS fp theAPI = writeFile fp $ unlines
   [ "'use strict';"
   , "const $ = require('jquery');"
   , ""
-  , concatMap generateJS functions
+  , T.unpack $ jsForAPI theAPI jquery
   , ""
   , "module.exports = {"
-  , intercalate "," $ map (\ajx-> _funcName ajx ++": "++_funcName ajx) functions
+  , intercalate "," $ map (\fname-> fname++": "++ fname) functions
   , "};"
   ]
+  where
+    functions = map (T.unpack . camelCase . view funcName) (listFromAPI (Proxy :: Proxy NoTypes) theAPI)

@@ -6,7 +6,7 @@
 module MinServant where
 
 import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.Trans.Either (left, EitherT)
+import           Control.Monad.Trans.Except 
 import qualified Control.Exception as X
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -20,7 +20,7 @@ import           Network.HTTP.Types
 import           Network.Wai
 import           Servant
 import           Servant.Docs
-import           Servant.JQuery
+import           Servant.JS.JQuery
 
 import           API
 import           Db
@@ -40,21 +40,21 @@ userServer = users :<|> getUser :<|> newUser
 -- | The users endpoint loads the full list of users from a database,
 -- which has to happen in IO, so the return type needs to incorporate
 -- error conditions.
-users :: EitherT ServantErr IO [User]
+users :: ExceptT ServantErr IO [User]
 users = liftIO loadUsers
 
-getUser :: Int -> EitherT ServantErr IO User
+getUser :: Int -> ExceptT ServantErr IO User
 getUser theId = do
   res <- liftIO $ loadUser theId
   case res of
-    Left  _err -> left userNotFound
+    Left  _err -> throwE userNotFound
     Right user -> return user
 
-newUser :: User -> EitherT ServantErr IO [User]
+newUser :: User -> ExceptT ServantErr IO [User]
 newUser newUser = do
   res <- liftIO $ saveUser newUser
   case res of
-    Left _err -> left serverError
+    Left _err -> throwE serverError
     Right  _  -> users
 
 docsBS :: ByteString

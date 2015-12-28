@@ -4,6 +4,7 @@ const d3 = require('d3');
 const React = require('react');
 const ReactFauxDom = require('react-faux-dom');
 const Sparkline = require('./Sparkline.jsx');
+const server = require('../generated/server.js');
 
 require('./UserGraph.css');
 
@@ -22,17 +23,13 @@ const UserGraph = React.createClass({
   },
 
   loadUsersFromServer: function() {
-    $.ajax({
-      url: this.props.url,
-      dataType: 'json',
-      cache: false,
-      success: function(data) {
-        this.setState({data: extractAge(data)});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
+    server.getUsers(function(data) {
+                      this.setState({data: extractAge(data)});
+                    }.bind(this),
+                    function(xhr, status, err) {
+                      console.error(this.props.url, status, err.toString());
+                    }.bind(this)
+    );
   },
 
   getInitialState: function() {

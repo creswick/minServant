@@ -23,10 +23,12 @@ Library
   default-language:    Haskell2010
   ghc-options:         -Wall -fno-warn-unused-do-bind
   build-depends:       base >=4.6 && <4.9,
-                       servant-server,
-                       servant-docs,
-                       servant-jquery,
+                       servant == 0.5.*,
+                       servant-docs == 0.5.*,
+                       servant-js == 0.5.*,
+                       servant-server == 0.5.*,
                        wai,
+                       warp,
                        hssqlppp >= 0.5,
                        hssqlppp-th,
                        postgresql-simple,
@@ -43,6 +45,7 @@ Library
                        Db
                        Types
                        Errors
+                       AuthenticationCombinator
 
 executable minServant
   main-is:             Main.hs
@@ -58,8 +61,11 @@ executable genjs
   main-is:             Generator.hs
   build-depends:       minServant,
                        base >=4.6 && <4.9,
-                       servant-jquery,
-                       servant-server
+                       servant-js,
+                       servant-server,
+                       servant-foreign,
+                       lens,
+                       text
 
   hs-source-dirs:      programs
   default-language:    Haskell2010

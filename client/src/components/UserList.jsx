@@ -18,7 +18,7 @@ const UserList = React.createClass({
   },
 
   loadUsersFromServer: function() {
-    server.getusers(function(data) {
+    server.getUsers(function(data) {
                       this.setState({data: data});
                     }.bind(this),
                     function(xhr, status, err) {
@@ -50,7 +50,7 @@ const UserList = React.createClass({
     console.log("newuser: "+JSON.stringify(newUser));
 
     // POST to the server:
-    server.postadduser(newUser,
+    server.postAdduser(newUser,
                 function(data) {
                   this.setState({data: data});
                 }.bind(this),

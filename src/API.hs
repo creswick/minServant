@@ -2,8 +2,10 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 module API where
 
+import Data.Text (Text)
 import Servant
 import Servant.Docs
 
@@ -32,11 +34,11 @@ isaac = User 1 "Isaac Newton" 372 "isaac@newton.co.uk" "1683-3-1" -- (fromGregor
 albert :: User
 albert = User 2 "Albert Einstein" 136 "ae@mc2.org" "1905-12-1" -- (fromGregorian 1905 12 1)
 
-instance ToSample User User where
-  toSample _ = Just isaac
+instance ToSample User where
+  toSamples _ = [("Sample User",isaac)]
 
-instance ToSample [User] [User] where
-  toSample _ = Just [ isaac, albert ]
+instance ToSample [User] where
+  toSamples _ = [("Sample users", [ isaac, albert ])]
 
 -- | API for the documentation end point, which returns results as markdown:
 type DocsAPI = "docs" :> Raw
