@@ -12,7 +12,8 @@ import qualified Control.Exception as X
 import           Control.Monad.Trans.Except
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Aeson
-import           Data.ByteString
+import           Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as LC8
 import qualified Data.Text as T
 import           Network.HTTP.Types hiding (Header) -- (status401, status403)
@@ -64,6 +65,18 @@ lookupEither err key map = case lookup key map of
   Nothing -> Left err
   Just  v -> Right v
 
+data NewUserDetails = NewUserDetails { nudUsername :: String
+                                     , nudPassword :: String
+                                     , nudEmail :: String
+                                     } deriving (Read, Show, Eq, Ord, Generic)
+
+instance FromFormUrlEncoded NewUserDetails where
+  fromFormUrlEncoded theMap = do
+    nudUsername <- T.unpack `fmap` lookupEither "Could not find username" "username" theMap
+    nudPassword <- T.unpack `fmap` lookupEither "Could not find password" "password" theMap
+    nudEmail <- T.unpack `fmap` lookupEither "Could not find email" "email" theMap
+    return NewUserDetails {..}
+
 data LoginResult = LoginSuccess
                  | LoginFailure String
                    deriving (Read, Show, Eq, Ord, Generic)
@@ -72,9 +85,9 @@ instance ToJSON LoginResult
 
 
 type MyApi = "login" :> ReqBody '[FormUrlEncoded] Credentials :> Post '[JSON] (Headers '[Header "Set-Cookie" String] LoginResult)
-        :<|> "home" :> Get '[JSON] Int
-        :<|> "secret" :> SecretApi
-        :<|> "catchall" :> Get '[JSON] Int
+  :<|> "newuser" :> ReqBody '[FormUrlEncoded] NewUserDetails :> Post '[JSON] (Headers '[Header "Set-Cookie" String] LoginResult)
+  :<|> "home" :> Get '[JSON] Int
+  :<|> "secret" :> SecretApi
 
 type SecretApi = AuthProtected :> ( "name" :> Get '[JSON] String
                                :<|> "age"  :> Get '[JSON] Int )
@@ -89,12 +102,11 @@ secretServer = getName :<|> getAge
 
 server :: Server MyApi
 server = login
+    :<|> newuser
     :<|> getHome
     :<|> secretServer
-    :<|> catchall
   where
     getHome = return 5
-    catchall = return 42
 
 login :: Credentials -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] LoginResult)
 login cr@(Credentials name pass) | pass == "please" = doLogin cr
@@ -107,6 +119,21 @@ doLogin (Credentials name _) = do
   case eSessionCookie of
     Left            err -> throwE $ err403 { errBody = LC8.pack ("Could not validate session cookie: "++ err) }
     Right sessionCookie -> return $ addHeader sessionCookie LoginSuccess
+
+-- | Create a new user account.
+newuser :: NewUserDetails -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] LoginResult)
+newuser nud = doLogin Credentials { username = nudUsername nud
+                                  , password = nudPassword nud
+                                  }
+
+-- | Invalidate the current session cookie.
+-- TODO need to get the current cookie.
+logout :: ExceptT ServantErr IO ()
+logout = do
+  eRes <- liftIO $ clearSessionCookie "theCookie" -- TODO need to get the cookie.
+  case eRes of
+    Left err -> liftIO $ putStrLn ("Error clearing cookie: "++show err)
+    Right () -> return ()
 
 main :: IO ()
 main = run 8090 (serve myApi server)

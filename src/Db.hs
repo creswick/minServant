@@ -103,3 +103,13 @@ validSessionCookie sessCookie = X.bracket (PG.connect connInfo) PG.close $ \conn
   where
     parseSessionCookie = drop 5 $ C8.unpack sessCookie -- drop the "sess=" prefix.  TODO this should be done with an actual parser.
     sesscookie = StringLit emptyAnnotation parseSessionCookie
+
+-- | Invalidate a client session.
+clearSessionCookie :: BS.ByteString -> IO (Either X.SomeException ())
+clearSessionCookie sessCookie = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
+  exec conn [sqlStmt| DELETE FROM sessions
+                      WHERE session_id=$e(sesscookie);
+                    |]
+  where
+    parseSessionCookie = drop 5 $ C8.unpack sessCookie
+    sesscookie = StringLit emptyAnnotation parseSessionCookie
