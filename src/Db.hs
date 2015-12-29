@@ -1,9 +1,11 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE QuasiQuotes         #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Db where
 
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as C8
 import           Data.String (fromString)
 import qualified Data.Text.Lazy as TL
 import qualified Database.PostgreSQL.Simple as PG
@@ -74,12 +76,30 @@ newSession :: Int -> IO (Either String String)
 newSession userId = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
   res <- query conn [$sqlStmt| INSERT INTO sessions (user_id)
                                VALUES ($e(userid))
-                               RETURNING session_id;
+                               RETURNING cast(session_id as text);
                              |]
   case res of
-    Left    err -> return (Left $ show err)
-    Right    [] -> return $ Left "user not found"
-    Right (u:_) -> return $ Right u
+    Left      err -> return (Left $ show err)
+    Right      [] -> return $ Left "user not found"
+    Right (PG.Only res:_) -> return $ Right ("sess="++res)
 
   where
     userid = NumberLit emptyAnnotation (show userId)
+
+-- | Check a session cookie to see if it is currently valid.
+validSessionCookie :: BS.ByteString -> IO Bool
+validSessionCookie sessCookie = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
+  res :: Either X.SomeException [PG.Only String]
+      <- query conn [sqlStmt| SELECT cast(session_id as text)
+                                FROM sessions
+                               WHERE session_id=$e(sesscookie);
+                            |]
+  case res of
+    Left _err -> do putStrLn ("Error: "++show _err)
+                    return False
+    Right  [] -> do putStrLn "No session cookies found"
+                    return False
+    Right   _ -> return True
+  where
+    parseSessionCookie = drop 5 $ C8.unpack sessCookie -- drop the "sess=" prefix.  TODO this should be done with an actual parser.
+    sesscookie = StringLit emptyAnnotation parseSessionCookie
