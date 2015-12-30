@@ -1,34 +1,32 @@
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Types where
 
 import Data.Aeson
 import GHC.Generics
 import Data.Time.Calendar (Day)
+import           Data.Time                        (UTCTime)
 import qualified Database.PostgreSQL.Simple.FromField as D
 import qualified Database.PostgreSQL.Simple.FromRow   as D
 
-data User = User
-  { user_id :: Int
-  , name :: String
-  , age :: Int
-  , email :: String
-  , registration_date :: String
+data Note = Note
+  { note_id :: Int
+  , title :: String
+  , content :: String
+  , note_date :: String
   } deriving (Eq, Show, Generic)
 
-instance ToJSON User
-instance FromJSON User
+instance ToJSON Note
+instance FromJSON Note
 
-instance D.FromRow User where
+instance D.FromRow Note where
   fromRow = do
-    user_id <- D.field
-    name <- D.field
-    age <- D.field
-    email <- D.field
-    registration_date <- D.field
-    return User {..}
+    note_id <- D.field
+    title <- D.field
+    content <- D.field
+    theDate :: UTCTime
+            <- D.field
+    let note_date = show theDate
+    return Note {..}
 
--- instance D.FromField Day where
---   fromField f mdata = do
---     dayStr <- D.fromField f mdata
---     return $ read dayStr

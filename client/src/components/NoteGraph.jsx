@@ -6,28 +6,27 @@ const ReactFauxDom = require('react-faux-dom');
 const Sparkline = require('./Sparkline.jsx');
 const server = require('../generated/server.js');
 
-require('./UserGraph.css');
+require('./NoteGraph.css');
 
-const extractAge = function(data) {
-  return data.map(function(user) {
-    return user.age;
+const extractLength = function(data) {
+  return data.map(function(note) {
+    return note.content.length;
   });
 };
 
-const UserGraph = React.createClass({
+const NoteGraph = React.createClass({
   propTypes: {
     width: React.PropTypes.number,
     height: React.PropTypes.number,
-    url: React.PropTypes.string,
     pollInterval: React.PropTypes.number
   },
 
-  loadUsersFromServer: function() {
-    server.getUsers(function(data) {
-                      this.setState({data: extractAge(data)});
+  loadNotesFromServer: function() {
+    server.getNotes(function(data) {
+                      this.setState({data: extractLength(data)});
                     }.bind(this),
                     function(xhr, status, err) {
-                      console.error(this.props.url, status, err.toString());
+                      console.error("Could not load notes for graph.", status, err.toString());
                     }.bind(this)
     );
   },
@@ -38,8 +37,8 @@ const UserGraph = React.createClass({
   },
 
   componentDidMount: function() {
-    this.loadUsersFromServer();
-    const pollTimer = setInterval(this.loadUsersFromServer, this.props.pollInterval);
+    this.loadNotesFromServer();
+    const pollTimer = setInterval(this.loadNotesFromServer, this.props.pollInterval);
 
     this.setState({pollTimer: pollTimer});
   },
@@ -50,7 +49,7 @@ const UserGraph = React.createClass({
 
   render: function () {
     return (
-      <Sparkline className='usergraph'
+      <Sparkline className='notegraph'
                  width={this.props.width}
                  height={this.props.height}
                  data={this.state.data}
@@ -59,4 +58,4 @@ const UserGraph = React.createClass({
   }
 });
 
-module.exports = UserGraph;
+module.exports = NoteGraph;

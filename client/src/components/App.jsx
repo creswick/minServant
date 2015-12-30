@@ -10,8 +10,8 @@ const App = React.createClass({
       <div>
           <h1>App</h1>
           <ul>
-              <li><Link to="/users">Users</Link></li>
-              <li><Link to="/usergraph">User Graph</Link></li>
+              <li><Link to="/notes">Notes</Link></li>
+              <li><Link to="/notegraph">Note Graph</Link></li>
               <li><Link to="/docs">API Docs</Link></li>
           </ul>
 

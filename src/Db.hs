@@ -35,49 +35,53 @@ connInfo = PG.defaultConnectInfo
   , PG.connectDatabase = "servant"
   }
 
-loadUsers :: IO [User]
-loadUsers = do
+loadNotes :: IO [Note]
+loadNotes = do
   res <- X.bracket (PG.connect connInfo) PG.close $ \conn -> do
-              query conn [$sqlStmt| SELECT * FROM users; |]
+              query conn [sqlStmt| SELECT note_id, title, content, note_date
+                                   FROM notes;
+                                 |]
   case res of
-    Left    err -> return []
-    Right users -> return users
+    Left    err -> do putStrLn ("Error loading notes: "++show err)
+                      return []
+    Right notes -> return notes
 
-loadUser :: Int -> IO (Either String User)
-loadUser the_id' = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
+loadNote :: Int -> IO (Either String Note)
+loadNote the_id' = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
   let the_id = NumberLit emptyAnnotation $ show the_id'
-  eUs <- query conn [$sqlStmt| SELECT *
-                                FROM users
-                               WHERE $e(the_id);
-                   |]
+  eUs <- query conn [sqlStmt| SELECT *
+                              FROM notes
+                              WHERE $e(the_id);
+                    |]
   case eUs of
-    Left err -> return $ Left (show err)
-    Right [] -> return $ Left "user not found"
+    Left err -> do putStrLn ("Error loading note: "++show err)
+                   return $ Left (show err)
+    Right [] -> return $ Left "note not found"
     Right (u:_) -> return $ Right u
 
-saveUser :: User -> IO (Either String [()])
-saveUser user = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
-  res <- exec conn [$sqlStmt| INSERT INTO users
-                                      (name, age, email, registration_date)
-                               VALUES ($e(newname), $e(newage), $e(newemail), $e(registrationdate));
-                             |]
+saveNote :: Note -> IO (Either String [()])
+saveNote note = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
+  res <- exec conn [sqlStmt| INSERT INTO notes
+                                    (title, content, user_id)
+                             VALUES ($e(newtitle), $e(newcontent), $e(userid));
+                           |]
   case res of
-    Left err -> return (Left $ show err)
+    Left err -> do putStrLn ("Error saving note: "++show err)
+                   return (Left $ show err)
     Right  v -> return $ Right [()]
 
   where
-    newname = StringLit emptyAnnotation (name user)
-    newage = NumberLit emptyAnnotation (show $ age user)
-    newemail = StringLit emptyAnnotation (email user)
-    registrationdate = StringLit emptyAnnotation (registration_date user)
+    newtitle = StringLit emptyAnnotation (title note)
+    newcontent = StringLit emptyAnnotation (content note)
+    userid = NumberLit emptyAnnotation (show 2) -- TODO get current user via session cookie.
 
 -- insert into users (name, age, email, registration_date) values ('A. E.', 136, 'ae@mc2.org', '1905-12-1');
 newSession :: Int -> IO (Either String String)
 newSession userId = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
-  res <- query conn [$sqlStmt| INSERT INTO sessions (user_id)
-                               VALUES ($e(userid))
-                               RETURNING cast(session_id as text);
-                             |]
+  res <- query conn [sqlStmt| INSERT INTO sessions (user_id)
+                              VALUES ($e(userid))
+                              RETURNING cast(session_id as text);
+                            |]
   case res of
     Left      err -> return (Left $ show err)
     Right      [] -> return $ Left "user not found"

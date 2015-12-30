@@ -14,31 +14,31 @@ import Types
 -- | The API for this web service.
 -- Note that these entries *must* line up with the entries in the
 -- `server` definition.
-type UserAPI = "users" :> Get '[JSON] [User]
-          :<|> "user" :> Capture "userId" Int :> Get '[JSON] User
-          :<|> "adduser" :> ReqBody '[JSON] User :> Post '[JSON] [User]
+type NoteAPI = "notes" :> Get '[JSON] [Note]
+          :<|> "note" :> Capture "noteId" Int :> Get '[JSON] Note
+          :<|> "addnote" :> ReqBody '[JSON] Note :> Post '[JSON] [Note]
 
-userAPI :: Proxy UserAPI
-userAPI = Proxy
+noteAPI :: Proxy NoteAPI
+noteAPI = Proxy
 
-instance ToCapture (Capture "userId" Int) where
+instance ToCapture (Capture "noteId" Int) where
   toCapture _ =
-    DocCapture "userId"                             -- name
-               "(integer) ID of the requested user" -- description
+    DocCapture "noteId"                             -- name
+               "(integer) ID of the requested note" -- description
 
--- | Sample user for documentation
-isaac :: User
-isaac = User 1 "Isaac Newton" 372 "isaac@newton.co.uk" "1683-3-1" -- (fromGregorian 1683 3 1)
+-- | Sample note for documentation
+note1 :: Note
+note1 = Note 1 "Test Note 1" "This is a sample note." "1683-3-1"
 
--- | Another sample user.
-albert :: User
-albert = User 2 "Albert Einstein" 136 "ae@mc2.org" "1905-12-1" -- (fromGregorian 1905 12 1)
+-- | Another sample note.
+note2 :: Note
+note2 = Note 2 "Another sample note" "Just a sample note, with multiple lines.\nHere's the second line." "1905-12-1"
 
-instance ToSample User where
-  toSamples _ = [("Sample User",isaac)]
+instance ToSample Note where
+  toSamples _ = [("Sample Note", note1)]
 
-instance ToSample [User] where
-  toSamples _ = [("Sample users", [ isaac, albert ])]
+instance ToSample [Note] where
+  toSamples _ = [("Sample notes", [ note1, note2 ])]
 
 -- | API for the documentation end point, which returns results as markdown:
 type DocsAPI = "docs" :> Raw
@@ -56,7 +56,7 @@ staticAPI = Proxy
 
 
 -- | The unified API for the whole web service:
-type FullAPI = UserAPI :<|> DocsAPI :<|> StaticAPI
+type FullAPI = NoteAPI :<|> DocsAPI :<|> StaticAPI
 
 fullAPI :: Proxy FullAPI
 fullAPI = Proxy

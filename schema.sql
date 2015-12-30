@@ -2,10 +2,19 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE users (
   user_id SERIAL PRIMARY KEY,
-  name text NOT NULL,
-  age integer NOT NULL,
-  email text NOT NULL,
-  registration_date text NOT NULL
+  name text NOT NULL UNIQUE,
+  password text NOT NULL,
+  registration_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now() -- UTCTime in Haskell (works with fromfield)
+);
+
+CREATE TABLE notes (
+  note_id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  note_date TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), -- UTCTime in Haskell (works with fromfield)
+  user_id INTEGER NOT NULL,
+
+  FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE sessions (
@@ -17,11 +26,5 @@ CREATE TABLE sessions (
 );
 
 
-insert into users (name, age, email, registration_date) values ('Isaac Newton', 372, 'isaac@newton.co.uk', '1683-3-1');
-insert into users (name, age, email, registration_date) values ('Albert Einstein', 136, 'ae@mc2.org', '1905-12-1');
-insert into users (name, age, email, registration_date) values ('I. Newton', 200, 'isaac@newton.co.uk', '1683-3-1');
-insert into users (name, age, email, registration_date) values ('A. Einstein', 50, 'ae@mc2.org', '1905-12-1');
-insert into users (name, age, email, registration_date) values ('Newt Newt', 72, 'isaac@newton.co.uk', '1683-3-1');
-insert into users (name, age, email, registration_date) values ('Albert', 6, 'ae@mc2.org', '1905-12-1');
-insert into users (name, age, email, registration_date) values ('Isaac N.', 18, 'isaac@newton.co.uk', '1683-3-1');
-insert into users (name, age, email, registration_date) values ('A. E.', 136, 'ae@mc2.org', '1905-12-1');
+insert into users (user_id, name, password) values (1, 'test', 'test');
+insert into users (user_id, name, password) values (2, 'tester', 'test');

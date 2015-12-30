@@ -19,7 +19,7 @@ import           Data.Time.Calendar (fromGregorian)
 import           Network.HTTP.Types
 import           Network.Wai
 import           Servant
-import           Servant.Docs
+import           Servant.Docs (markdown, docsWithIntros, DocIntro(..))
 import           Servant.JS.JQuery
 
 import           API
@@ -34,34 +34,34 @@ import           Types
 -- a type error, but if you happen to swap two handlers that have the
 -- same type, then the logical definitions will not match, and your
 -- app will run happily -- while generating the wrong results.
-userServer :: Server UserAPI
-userServer = users :<|> getUser :<|> newUser
+noteServer :: Server NoteAPI
+noteServer = notes :<|> getNote :<|> newNote
 
--- | The users endpoint loads the full list of users from a database,
+-- | The notes endpoint loads the full list of notes from a database,
 -- which has to happen in IO, so the return type needs to incorporate
 -- error conditions.
-users :: ExceptT ServantErr IO [User]
-users = liftIO loadUsers
+notes :: ExceptT ServantErr IO [Note]
+notes = liftIO loadNotes
 
-getUser :: Int -> ExceptT ServantErr IO User
-getUser theId = do
-  res <- liftIO $ loadUser theId
+getNote :: Int -> ExceptT ServantErr IO Note
+getNote theId = do
+  res <- liftIO $ loadNote theId
   case res of
-    Left  _err -> throwE userNotFound
-    Right user -> return user
+    Left  _err -> throwE noteNotFound
+    Right note -> return note
 
-newUser :: User -> ExceptT ServantErr IO [User]
-newUser newUser = do
-  res <- liftIO $ saveUser newUser
+newNote :: Note -> ExceptT ServantErr IO [Note]
+newNote newNote = do
+  res <- liftIO $ saveNote newNote
   case res of
     Left _err -> throwE serverError
-    Right  _  -> users
+    Right  _  -> notes
 
 docsBS :: ByteString
 docsBS = encodeUtf8
        . pack
        . markdown
-       $ docsWithIntros [intro] userAPI
+       $ docsWithIntros [intro] noteAPI
 
   where intro = DocIntro "Welcome" ["This is our super webservice's API.", "Enjoy!"]
 
@@ -73,7 +73,7 @@ staticServer = serveDirectory "static"
           :<|> serveDirectory "static"
 
 server :: Server FullAPI
-server = userServer :<|> docsServer :<|> staticServer
+server = noteServer :<|> docsServer :<|> staticServer
 
 app :: Application
 app = serve fullAPI server

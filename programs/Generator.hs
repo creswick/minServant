@@ -13,7 +13,7 @@ import API
 main :: IO ()
 main = do
   (outFile:_) <- getArgs
-  writeJS outFile userAPI
+  writeJS outFile noteAPI
 
 -- usersJS :<|> userJS :<|> adduserJS = jquery userAPI
 

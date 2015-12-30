@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Errors
  ( userNotFound
+ , noteNotFound
  , fileNotFound
  , serverError
  ) where
@@ -9,7 +10,10 @@ import qualified Data.ByteString.Lazy.Char8 as LC8
 
 import Servant
 
--- | A simple "user not found" 404 error.
+-- | A simple "note not found" 404 error.
+noteNotFound :: ServantErr
+noteNotFound = err404 { errBody = "Note does not exist." }
+
 userNotFound :: ServantErr
 userNotFound = err404 { errBody = "User does not exist." }
 
