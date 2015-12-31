@@ -24,7 +24,8 @@ main = do
     , "};"
     ]
   where
-    functions = map (T.unpack . camelCase . view funcName) (listFromAPI (Proxy :: Proxy NoTypes) fullAPI)
+    functions  = []
+--    functions = map (T.unpack . camelCase . view funcName) (listFromAPI (Proxy :: Proxy NoTypes) fullAPI)
 
 --  writeJS outFile fullAPI
 

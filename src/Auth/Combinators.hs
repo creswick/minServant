@@ -78,9 +78,15 @@ instance HasServer rest => HasServer (AuthProtected :> rest) where
                 then return $ Route ()
                 else return $ FailFatal err403 { errBody = "Invalid cookie" }
 
-type AuthAPI = "login" :>  ReqBody '[FormUrlEncoded] Credentials :> Post '[JSON] (Headers '[Header "Set-Cookie" String] ())
-          :<|> "newuser" :> ReqBody '[FormUrlEncoded] NewUserDetails :> Post '[JSON] (Headers '[Header "Set-Cookie" String] ())
-          :<|> "logout" :> Header "Cookie" String :> Get '[JSON] ()
+data LoginResult = LoginSuccess
+                 | LoginFailure String
+                   deriving (Read, Show, Eq, Ord, Generic)
+
+instance ToJSON LoginResult
+
+type AuthAPI = "login" :>  ReqBody '[FormUrlEncoded] Credentials :> Post '[JSON] (Headers '[Header "Set-Cookie" String] LoginResult)
+          :<|> "newuser" :> ReqBody '[FormUrlEncoded] NewUserDetails :> Post '[JSON] (Headers '[Header "Set-Cookie" String] LoginResult)
+          :<|> "logout" :> Header "Cookie" String :> Get '[JSON] Bool
           :<|> "loggedin" :> Header "Cookie" String :> Get '[JSON] Bool
 
 
@@ -121,17 +127,17 @@ instance FromFormUrlEncoded NewUserDetails where
     nudEmail <- T.unpack `fmap` lookupEither "Could not find email" "email" theMap
     return NewUserDetails {..}
 
-login :: Credentials -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] ())
+login :: Credentials -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] LoginResult)
 login cr@(Credentials name pass) | pass == "please" = doLogin cr
                                  | otherwise        = throwE userNotFound -- TODO wrong response.
 
-doLogin :: Credentials -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] ())
+doLogin :: Credentials -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] LoginResult)
 doLogin (Credentials name _) = do
   let userid = 2 -- TODO use a DB lookup.
   eSessionCookie <- liftIO $ newSession userid
   case eSessionCookie of
     Left            err -> throwE $ err403 { errBody = LC8.pack ("Could not validate session cookie: "++ err) }
-    Right sessionCookie -> return $ addHeader sessionCookie ()
+    Right sessionCookie -> return $ addHeader sessionCookie LoginSuccess
 
 loggedIn :: Maybe String -> ExceptT ServantErr IO Bool
 loggedIn Nothing              = return False
@@ -139,7 +145,7 @@ loggedIn (Just sessionCookie) = do
   liftIO $ validSessionCookie sessionCookie
 
 -- | Create a new user account and log the user in.
-newuser :: NewUserDetails -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] ())
+newuser :: NewUserDetails -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] LoginResult)
 newuser nud = do
   -- TODO create new user in db:
   eRes <- liftIO $ newUser (nudUsername nud) (nudPassword nud) (nudEmail nud)
@@ -151,10 +157,14 @@ newuser nud = do
                                     }
 
 -- | Invalidate the current session cookie.
-logout :: Maybe String -> ExceptT ServantErr IO ()
-logout Nothing       = return ()
+--
+-- Returns True if you were logged out, False if you were not logged in in the first place.
+logout :: Maybe String -> ExceptT ServantErr IO Bool
+logout Nothing       = return False
 logout (Just cookie) = do
   eRes <- liftIO $ clearSessionCookie cookie
   case eRes of
-    Left err -> liftIO $ putStrLn ("Error clearing cookie: "++show err)
-    Right () -> return ()
+    Left err -> do
+      liftIO $ putStrLn ("Error clearing cookie: "++show err)
+      return False
+    Right () -> return True
