@@ -45,7 +45,8 @@ Library
                        Db
                        Types
                        Errors
-                       AuthenticationCombinator
+                       Auth
+                       Auth.Combinators
 
 executable minServant
   main-is:             Main.hs

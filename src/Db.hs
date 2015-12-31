@@ -75,7 +75,6 @@ saveNote note = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
     newcontent = StringLit emptyAnnotation (content note)
     userid = NumberLit emptyAnnotation (show 2) -- TODO get current user via session cookie.
 
--- insert into users (name, age, email, registration_date) values ('A. E.', 136, 'ae@mc2.org', '1905-12-1');
 newSession :: Int -> IO (Either String String)
 newSession userId = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
   res <- query conn [sqlStmt| INSERT INTO sessions (user_id)
@@ -91,7 +90,7 @@ newSession userId = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
     userid = NumberLit emptyAnnotation (show userId)
 
 -- | Check a session cookie to see if it is currently valid.
-validSessionCookie :: BS.ByteString -> IO Bool
+validSessionCookie :: String -> IO Bool
 validSessionCookie sessCookie = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
   res :: Either X.SomeException [PG.Only String]
       <- query conn [sqlStmt| SELECT cast(session_id as text)
@@ -105,15 +104,31 @@ validSessionCookie sessCookie = X.bracket (PG.connect connInfo) PG.close $ \conn
                     return False
     Right   _ -> return True
   where
-    parseSessionCookie = drop 5 $ C8.unpack sessCookie -- drop the "sess=" prefix.  TODO this should be done with an actual parser.
+    parseSessionCookie = drop 5 sessCookie -- drop the "sess=" prefix.  TODO this should be done with an actual parser.
     sesscookie = StringLit emptyAnnotation parseSessionCookie
 
 -- | Invalidate a client session.
-clearSessionCookie :: BS.ByteString -> IO (Either X.SomeException ())
+clearSessionCookie :: String -> IO (Either X.SomeException ())
 clearSessionCookie sessCookie = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
   exec conn [sqlStmt| DELETE FROM sessions
                       WHERE session_id=$e(sesscookie);
                     |]
   where
-    parseSessionCookie = drop 5 $ C8.unpack sessCookie
+    parseSessionCookie = drop 5 sessCookie
     sesscookie = StringLit emptyAnnotation parseSessionCookie
+
+-- | Create a new user in the database.
+newUser :: String -- ^ Username
+        -> String -- ^ Unencrypted password.
+        -> String -- ^ Email adress
+        -> IO (Either X.SomeException ())
+newUser username password email = X.bracket (PG.connect connInfo) PG.close $ \conn -> do
+  exec conn [sqlStmt| INSERT INTO users (username, password, email)
+                                 VALUES ($e(uname), $e(pass), $e(address));
+                     |]
+  where
+    uname = StringLit emptyAnnotation username
+
+    -- TODO salt & hash password.
+    pass = StringLit emptyAnnotation password
+    address = StringLit emptyAnnotation email

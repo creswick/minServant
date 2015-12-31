@@ -12,21 +12,24 @@ import API
 -- | Generator for Javascript.
 main :: IO ()
 main = do
-  (outFile:_) <- getArgs
-  writeJS outFile noteAPI
+  (fp:_) <- getArgs
+  writeFile fp $ unlines
+    [ "'use strict';"
+    , "const $ = require('jquery');"
+    , ""
+    , T.unpack $ jsForAPI fullAPI jquery
+    , ""
+    , "module.exports = {"
+    , intercalate "," $ map (\fname-> fname++": "++ fname) functions
+    , "};"
+    ]
+  where
+    functions = map (T.unpack . camelCase . view funcName) (listFromAPI (Proxy :: Proxy NoTypes) fullAPI)
+
+--  writeJS outFile fullAPI
 
 -- usersJS :<|> userJS :<|> adduserJS = jquery userAPI
 
 -- writeJS :: FilePath -> [AjaxReq] -> IO ()
-writeJS fp theAPI = writeFile fp $ unlines
-  [ "'use strict';"
-  , "const $ = require('jquery');"
-  , ""
-  , T.unpack $ jsForAPI theAPI jquery
-  , ""
-  , "module.exports = {"
-  , intercalate "," $ map (\fname-> fname++": "++ fname) functions
-  , "};"
-  ]
-  where
-    functions = map (T.unpack . camelCase . view funcName) (listFromAPI (Proxy :: Proxy NoTypes) theAPI)
+-- writeJS fp theAPI =
+  

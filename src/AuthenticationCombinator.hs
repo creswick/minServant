@@ -26,56 +26,9 @@ import           GHC.Generics
 import           Errors
 import           Db
 
-type DBLookup = ByteString -> IO Bool
-
-isGoodCookie :: DBLookup
-isGoodCookie sessionCookie = do
-  res <- validSessionCookie sessionCookie
-  return res
-
-data AuthProtected
-
-instance HasServer rest => HasServer (AuthProtected :> rest) where
-  type ServerT (AuthProtected :> rest) m = ServerT rest m
-
-  route Proxy subserver = WithRequest $ \ request ->
-    route (Proxy :: Proxy rest) $ addAcceptCheck subserver $ cookieCheck request
-      where
-        cookieCheck req = case lookup "Cookie" (requestHeaders req) of
-            Nothing -> return $ FailFatal err401 { errBody = "Missing auth header" }
-            Just v  -> do
-              authGranted <- isGoodCookie v
-              if authGranted
-                then return $ Route ()
-                else return $ FailFatal err403 { errBody = "Invalid cookie" }
+import Auth.Combinators
 
 -- Now let's use it!
-data Credentials = Credentials { username :: String
-                               , password :: String
-                               } deriving (Read, Show, Eq, Ord, Generic)
-
-instance FromFormUrlEncoded Credentials where
-  fromFormUrlEncoded theMap = do
-    username <- T.unpack `fmap` lookupEither "Could not find username" "username" theMap
-    password <- T.unpack `fmap` lookupEither "Could not find password" "password" theMap
-    return Credentials {..}
-
-lookupEither :: Eq a => String -> a -> [(a, b)] -> Either String b
-lookupEither err key map = case lookup key map of
-  Nothing -> Left err
-  Just  v -> Right v
-
-data NewUserDetails = NewUserDetails { nudUsername :: String
-                                     , nudPassword :: String
-                                     , nudEmail :: String
-                                     } deriving (Read, Show, Eq, Ord, Generic)
-
-instance FromFormUrlEncoded NewUserDetails where
-  fromFormUrlEncoded theMap = do
-    nudUsername <- T.unpack `fmap` lookupEither "Could not find username" "username" theMap
-    nudPassword <- T.unpack `fmap` lookupEither "Could not find password" "password" theMap
-    nudEmail <- T.unpack `fmap` lookupEither "Could not find email" "email" theMap
-    return NewUserDetails {..}
 
 data LoginResult = LoginSuccess
                  | LoginFailure String
@@ -108,32 +61,6 @@ server = login
   where
     getHome = return 5
 
-login :: Credentials -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] LoginResult)
-login cr@(Credentials name pass) | pass == "please" = doLogin cr
-                                 | otherwise        = throwE userNotFound -- TODO wrong response.
-
--- doLogin :: Credentials -> EitherT ServantErr IO LoginResult
-doLogin (Credentials name _) = do
-  let userid = 2 -- TODO use a DB lookup.
-  eSessionCookie <- liftIO $ newSession userid
-  case eSessionCookie of
-    Left            err -> throwE $ err403 { errBody = LC8.pack ("Could not validate session cookie: "++ err) }
-    Right sessionCookie -> return $ addHeader sessionCookie LoginSuccess
-
--- | Create a new user account.
-newuser :: NewUserDetails -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] LoginResult)
-newuser nud = doLogin Credentials { username = nudUsername nud
-                                  , password = nudPassword nud
-                                  }
-
--- | Invalidate the current session cookie.
--- TODO need to get the current cookie.
-logout :: ExceptT ServantErr IO ()
-logout = do
-  eRes <- liftIO $ clearSessionCookie "theCookie" -- TODO need to get the cookie.
-  case eRes of
-    Left err -> liftIO $ putStrLn ("Error clearing cookie: "++show err)
-    Right () -> return ()
 
 main :: IO ()
 main = run 8090 (serve myApi server)

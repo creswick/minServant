@@ -5,10 +5,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 module API where
 
+
 import Data.Text (Text)
 import Servant
 import Servant.Docs
 
+import Auth
 import Types
 
 -- | The API for this web service.
@@ -56,7 +58,7 @@ staticAPI = Proxy
 
 
 -- | The unified API for the whole web service:
-type FullAPI = NoteAPI :<|> DocsAPI :<|> StaticAPI
+type FullAPI = NoteAPI :<|> DocsAPI :<|> StaticAPI :<|> AuthAPI
 
 fullAPI :: Proxy FullAPI
 fullAPI = Proxy

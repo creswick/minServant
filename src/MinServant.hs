@@ -26,6 +26,7 @@ import           API
 import           Db
 import           Errors
 import           Types
+import           Auth
 
 -- | The set of logical handlers that go with the API.
 --
@@ -73,7 +74,7 @@ staticServer = serveDirectory "static"
           :<|> serveDirectory "static"
 
 server :: Server FullAPI
-server = noteServer :<|> docsServer :<|> staticServer
+server = noteServer :<|> docsServer :<|> staticServer :<|> authServer
 
 app :: Application
 app = serve fullAPI server
