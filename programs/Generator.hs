@@ -8,24 +8,26 @@ import Servant.JS
 import Servant.Foreign
 import Servant
 import API
+import Auth
 
 -- | Generator for Javascript.
 main :: IO ()
 main = do
+  let theAPI = clientAPI
   (fp:_) <- getArgs
   writeFile fp $ unlines
     [ "'use strict';"
     , "const $ = require('jquery');"
     , ""
-    , T.unpack $ jsForAPI fullAPI jquery
+    , T.unpack $ jsForAPI theAPI jquery
     , ""
     , "module.exports = {"
-    , intercalate "," $ map (\fname-> fname++": "++ fname) functions
+    , intercalate ",\n" $ map (\fname-> fname++": "++ fname) (functions theAPI)
     , "};"
     ]
   where
 --    functions  = []
-    functions = map (T.unpack . camelCase . view funcName) (listFromAPI (Proxy :: Proxy NoTypes) fullAPI)
+    functions theAPI = map (T.unpack . camelCase . view funcName) (listFromAPI (Proxy :: Proxy NoTypes) theAPI)
 
 --  writeJS outFile fullAPI
 

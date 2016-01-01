@@ -56,6 +56,12 @@ type StaticAPI = "static" :> Raw -- Static file handler.
 staticAPI :: Proxy StaticAPI
 staticAPI = Proxy
 
+-- type TestAPI = NoteAPI :<|> AuthAPI
+
+type ClientAPI = NoteAPI :<|> AuthAPI
+
+clientAPI :: Proxy ClientAPI
+clientAPI = Proxy
 
 -- | The unified API for the whole web service:
 type FullAPI = NoteAPI :<|> DocsAPI :<|> StaticAPI :<|> AuthAPI

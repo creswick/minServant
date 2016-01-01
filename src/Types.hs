@@ -29,4 +29,3 @@ instance D.FromRow Note where
             <- D.field
     let note_date = show theDate
     return Note {..}
-

@@ -25,6 +25,7 @@ import           Network.HTTP.Types hiding (Header) -- (status401, status403)
 import           Network.Wai
 import           Network.Wai.Handler.Warp -- ( run )
 import           Servant
+import           Servant.Docs
 import           Servant.Server.Internal -- ( succeedWith )
 import           GHC.Generics
 
@@ -84,10 +85,13 @@ data LoginResult = LoginSuccess
 
 instance ToJSON LoginResult
 
-type AuthAPI = "login" :>  ReqBody '[FormUrlEncoded] Credentials :> Post '[JSON] (Headers '[Header "Set-Cookie" String] LoginResult)
-          :<|> "newuser" :> ReqBody '[FormUrlEncoded] NewUserDetails :> Post '[JSON] (Headers '[Header "Set-Cookie" String] LoginResult)
-          :<|> "logout" :> Header "Cookie" String :> Get '[JSON] Bool
-          :<|> "loggedin" :> Header "Cookie" String :> Get '[JSON] Bool
+instance ToSample LoginResult where
+  toSamples _ = [("Sample login success", LoginSuccess)]
+
+type AuthAPI = "login" :>  ReqBody '[JSON] Credentials :> Post '[JSON] (Headers '[Header "Set-Cookie" String] LoginResult)
+           :<|> "newuser" :> ReqBody '[JSON] NewUserDetails :> Post '[JSON] (Headers '[Header "Set-Cookie" String] LoginResult)
+           :<|> "logout" :> Header "Cookie" String :> Get '[JSON] Bool
+           :<|> "loggedin" :> Header "Cookie" String :> Get '[JSON] Bool
 
 
 authAPI :: Proxy AuthAPI
@@ -99,10 +103,16 @@ authServer = login
         :<|> logout
         :<|> loggedIn
 
+instance ToCapture (Header "Cookie" String) where
+  toCapture _ =
+    DocCapture "SessionCookie"          -- name
+               "Session cookie string." -- description
+
 data Credentials = Credentials { username :: String
                                , password :: String
                                } deriving (Read, Show, Eq, Ord, Generic)
 
+instance FromJSON Credentials
 instance FromFormUrlEncoded Credentials where
   fromFormUrlEncoded theMap = do
     username <- T.unpack `fmap` lookupEither "Could not find username" "username" theMap
@@ -115,17 +125,24 @@ lookupEither err key map = case lookup key map of
   Nothing -> Left err
   Just  v -> Right v
 
+instance ToSample Credentials where
+  toSamples _ = [("Sample Credentials", (Credentials "testuser" "testpassword"))]
+
 data NewUserDetails = NewUserDetails { nudUsername :: String
                                      , nudPassword :: String
                                      , nudEmail :: String
                                      } deriving (Read, Show, Eq, Ord, Generic)
 
+instance FromJSON NewUserDetails
 instance FromFormUrlEncoded NewUserDetails where
   fromFormUrlEncoded theMap = do
     nudUsername <- T.unpack `fmap` lookupEither "Could not find username" "username" theMap
     nudPassword <- T.unpack `fmap` lookupEither "Could not find password" "password" theMap
     nudEmail <- T.unpack `fmap` lookupEither "Could not find email" "email" theMap
     return NewUserDetails {..}
+
+instance ToSample NewUserDetails where
+  toSamples _ = [("Sample New User Details", (NewUserDetails "testuser" "testpassword" "test@example.com"))]
 
 login :: Credentials -> ExceptT ServantErr IO (Headers '[Header "Set-Cookie" String] LoginResult)
 login cr@(Credentials name pass) | pass == "please" = doLogin cr
